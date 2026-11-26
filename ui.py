@@ -37,6 +37,30 @@ def show_main_menu() -> str | None:
     ).ask()
 
 
+# Відображає меню керування контактами
+def show_contacts_menu() -> str | None:
+    return questionary.select(
+        "What would you like to do?",
+        choices=[
+            questionary.Choice("Add a contact (add)", value="add"),
+            questionary.Choice("Show all contacts (all)", value="all"),
+            questionary.Choice("Find a contact (find)", value="find"),
+            questionary.Choice("Change phone (change)", value="change"),
+            questionary.Choice("Show phone (phone)", value="phone"),
+            questionary.Choice("Add birthday (add-birthday)", value="add-birthday"),
+            questionary.Choice("Show birthday (show-birthday)", value="show-birthday"),
+            questionary.Choice("Add email (add-email)", value="add-email"),
+            questionary.Choice("Show email (show-email)", value="show-email"),
+            questionary.Choice("Add address (add-address)", value="add-address"),
+            questionary.Choice("Show address (show-address)", value="show-address"),
+            questionary.Choice("Delete a contact (delete)", value="delete"),
+            questionary.Choice("Back to main menu (back)", value="back")
+        ],
+        style=menu_style,
+        use_indicator=False
+    ).ask()
+
+
 # Відображає меню керування нотатками
 def show_notes_menu() -> str | None:
     return questionary.select(
