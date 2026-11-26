@@ -5,15 +5,6 @@ from rich import box
 import questionary
 from questionary import Style
 
-SUCCESS_MESSAGES = {
-    "Contact added.",
-    "Contact updated.",
-    "Phone updated.",
-    "Birthday added.",
-    "Email added.",
-    "Address added.",
-    "Contact deleted.",
-}
 
 console = Console()
 
