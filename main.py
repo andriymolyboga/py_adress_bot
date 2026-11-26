@@ -4,14 +4,45 @@ from contact_commands import (
     add_contact,
     add_email,
     change_phone,
+    delete_contact,
+    find_contact,
     show_address,
     show_birthday,
     show_email,
     show_phones,
-    find_contact,
-    delete_contact,
 )
+from notes import NotesBook
+from notes_handlers import (
+    add_note,
+    add_tag,
+    delete_all_notes,
+    delete_note,
+    edit_note,
+    search_by_tag,
+    search_notes,
+    show_all_notes,
+    show_note,
+    sort_by_tags,
+)
+from notes_storage import load_notes, save_notes
 from storage import load_data, save_data
+from ui import (
+    console,
+    get_command,
+    get_required_input,
+    pause,
+    show_contacts_menu,
+    show_error,
+    show_info,
+    show_main_menu,
+    show_notes_menu,
+    show_success,
+    show_table,
+    show_welcome,
+    display_contacts,
+    get_contact_args,
+    show_contact_result,
+)
 
 from notes import NotesBook
 from notes_handlers import (
