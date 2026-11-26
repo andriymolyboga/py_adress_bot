@@ -13,6 +13,7 @@ menu_style = Style([
     ("pointer", "fg:#5fba9d bold"),
 ])
 
+
 # Відображає привітальний екран застосунку
 def show_welcome() -> None:
     console.print(
@@ -49,6 +50,7 @@ def show_contacts_menu() -> str | None:
             questionary.Choice("Show phone (phone)", value="phone"),
             questionary.Choice("Add birthday (add-birthday)", value="add-birthday"),
             questionary.Choice("Show birthday (show-birthday)", value="show-birthday"),
+            questionary.Choice("Upcoming birthdays (birthdays)", value="birthdays"),
             questionary.Choice("Add email (add-email)", value="add-email"),
             questionary.Choice("Show email (show-email)", value="show-email"),
             questionary.Choice("Add address (add-address)", value="add-address"),
@@ -111,6 +113,7 @@ def show_warning(message: str) -> None:
 def show_info(message: str) -> None:
     console.print(f"\nℹ {message}", style="bold cyan")
 
+
 # Запитує непорожнє значення
 def get_required_input(prompt: str) -> str:
     while True:
@@ -122,15 +125,20 @@ def get_required_input(prompt: str) -> str:
         show_error("This field cannot be empty. Please try again.")
 
 
+# Запитує кількість днів для пошуку днів народження
+def get_birthday_days() -> str:
+    return get_required_input("Enter number of days: ")
+
+
 # Виводить дані у вигляді таблиці
 def show_table(
     title: str,
     headers: list[str],
-    rows: list[list[str]]
+    rows: list[list[str]],
+    empty_message: str = "No records found."
 ) -> None:
-
     if not rows:
-        show_warning("No records found.")
+        show_warning(empty_message)
         return
 
     table = Table(
@@ -149,3 +157,80 @@ def show_table(
         table.add_row(*row)
 
     console.print(table)
+
+
+# =========================
+# ХЕЛПЕРИ ВІДОБРАЖЕННЯ ТА ВВОДУ
+# =========================
+
+def get_contact_args(action: str) -> list[str]:
+    name = get_required_input("Enter contact name: ")
+    args = [name]
+
+    prompts = {
+        "add": ("Enter phone number (optional): ", False),
+        "change": ("Enter new phone number: ", True),
+        "add-birthday": ("Enter birthday (DD.MM.YYYY): ", True),
+        "add-email": ("Enter email: ", True),
+        "add-address": ("Enter address: ", True),
+    }
+
+    if action in prompts:
+        prompt_text, required = prompts[action]
+        value = get_required_input(prompt_text) if required else input(prompt_text).strip()
+        if value:
+            args.append(value)
+
+    return args
+
+
+def display_contacts(contacts, title: str) -> None:
+    rows = [
+        [
+            str(record.name),
+            str(record.phone) if record.phone else "-",
+            str(record.birthday) if record.birthday else "-",
+            str(record.email) if record.email else "-",
+            str(record.address) if record.address else "-",
+        ]
+        for record in contacts
+    ]
+
+    show_table(
+        title=title,
+        headers=["Name", "Phone", "Birthday", "Email", "Address"],
+        rows=rows,
+    )
+
+
+# Виводить список найближчих днів народження у вигляді таблиці
+def display_birthdays(birthdays: list[dict[str, str]], days: int) -> None:
+    rows = [
+        [
+            str(index),
+            entry["name"],
+            entry["birthday"],
+        ]
+        for index, entry in enumerate(birthdays, start=1)
+    ]
+
+    show_table(
+        title=f"Upcoming Birthdays (Next {days} Day(s))",
+        headers=["#", "Name", "Birthday"],
+        rows=rows,
+        empty_message=f"No upcoming birthdays in the next {days} day(s).",
+    )
+
+
+def show_contact_result(result: str) -> None:
+    if result in SUCCESS_MESSAGES:
+        show_success(result)
+    elif result in {"Contact not found", "Contact not found."}:
+        show_error(result)
+    else:
+        console.print(result, markup=False)
+
+
+# Пауза для користувача перед продовженням
+def pause() -> None:
+    input("\nPress Enter to continue...")

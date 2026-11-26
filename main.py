@@ -11,6 +11,11 @@ from contact_commands import (
     show_email,
     show_phones,
 )
+from get_birthday import (
+    BirthdayNotFoundError,
+    get_upcoming_birthdays_for_period,
+    parse_days,
+)
 from notes import NotesBook
 from notes_handlers import (
     add_note,
@@ -28,9 +33,14 @@ from notes_storage import load_notes, save_notes
 from storage import load_data, save_data
 from ui import (
     console,
+    display_birthdays,
+    display_contacts,
+    get_birthday_days,
     get_command,
+    get_contact_args,
     get_required_input,
     pause,
+    show_contact_result,
     show_contacts_menu,
     show_error,
     show_info,
@@ -39,9 +49,6 @@ from ui import (
     show_success,
     show_table,
     show_welcome,
-    display_contacts,
-    get_contact_args,
-    show_contact_result,
 )
 
 from notes import NotesBook
@@ -77,22 +84,14 @@ from ui import (
 # КЕРУВАННЯ НОТАТКАМИ
 # =========================
 
-def manage_notes(notes_book):
 
-    commands = {
-        "add": add_note,
-        "all": show_all_notes,
-        "find": show_note,
-        "search": search_notes,
-        "edit": edit_note,
-        "delete": delete_note,
-        "delete-all": delete_all_notes,
-        "add-tag": add_tag,
-        "search-tag": search_by_tag,
-        "sort-tags": sort_by_tags
-    }
-
-    action = show_notes_menu()
+def _run_section_loop(
+    show_menu_func,
+    handlers: dict,
+    extra_commands: list[str],
+    on_action,
+) -> str | None:
+    action = show_menu_func()
 
     while True:
         if action in commands:
@@ -228,7 +227,21 @@ def manage_contacts(book):
             else:
                 display_contacts([record], "Contact Details")
 
-        elif action in commands:
+        # Окрема гілка для пошуку днів народження за задану кількість днів
+        # Окрема гілка для пошуку днів народження за задану кількість днів
+        if action == "birthdays":
+            try:
+                raw_days = get_birthday_days()
+                days = parse_days(raw_days)
+                upcoming = get_upcoming_birthdays_for_period(address_book, days)
+                display_birthdays(upcoming, days)
+            except BirthdayNotFoundError as error:
+                show_info(str(error))
+            except ValueError as error:
+                show_error(str(error))
+            return True
+
+        if action in handlers:
             args = get_contact_args(action)
 
             function = commands[action]
@@ -239,8 +252,12 @@ def manage_contacts(book):
             action = show_contacts_menu()
             continue
 
-        elif action == "back" or action is None:
-            return
+    return _run_section_loop(
+        show_menu_func=show_contacts_menu,
+        handlers=handlers,
+        extra_commands=["all", "birthdays", "menu", "back", "exit"],
+        on_action=handle_contact_action,
+    )
 
         elif action in ("exit", "close"):
             return "exit"
@@ -269,7 +286,13 @@ def manage_contacts(book):
 # ГОЛОВНЕ МЕНЮ ПРОГРАМИ
 # =========================
 
-def main():
+
+def _load_initial_state() -> tuple[object, NotesBook] | None:
+    try:
+        address_book = load_data()
+    except (ValueError, OSError) as error:
+        show_error(f"Could not load address book: {error}")
+        return None
 
     # Завантажуємо адресну книгу
     try:
@@ -305,6 +328,7 @@ def main():
 # =========================
 # ТОЧКА ВХОДУ
 # =========================
+
 
 if __name__ == "__main__":
     main()
