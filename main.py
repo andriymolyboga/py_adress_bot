@@ -15,7 +15,6 @@ from contact_commands import (
 )
 from storage import load_data, save_data
 
-
 # =========================
 # ОБРОБКА КОМАНД
 # =========================
@@ -85,21 +84,21 @@ def main():
         elif command == "add-birthday":
             print(add_birthday(args, book))
 
-        elif command == "show-birthday":
+        elif command == "birthday":
             print(show_birthday(args, book))
 
         # Email
         elif command == "add-email":
             print(add_email(args, book))
 
-        elif command == "show-email":
+        elif command == "email":
             print(show_email(args, book))
 
         # Адреса
         elif command == "add-address":
             print(add_address(args, book))
 
-        elif command == "show-address":
+        elif command == "address":
             print(show_address(args, book))
 
         # Виведення всіх контактів

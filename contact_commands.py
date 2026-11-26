@@ -2,7 +2,7 @@ from contacts import AddressBook, Record
 
 
 # =========================
-# ОБРОБКА ПОМИЛОК ТА ПАРСИНГ
+# ОБРОБКА ПОМИЛОК
 # =========================
 
 def input_error(func):
@@ -18,17 +18,6 @@ def input_error(func):
             return "Contact not found"
 
     return inner
-
-
-def parse_input(user_input):
-    # Розбиваємо рядок на команду (у нижньому регістрі) та список аргументів
-    parts = user_input.strip().split()
-    if not parts:
-        return "", []
-    cmd = parts[0].lower()
-    args = parts[1:]
-    return cmd, args
-
 
 # =========================
 # КОМАНДИ ДЛЯ ТЕЛЕФОНІВ І КОНТАКТІВ
