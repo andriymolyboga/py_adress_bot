@@ -5,15 +5,6 @@ from rich import box
 import questionary
 from questionary import Style
 
-SUCCESS_MESSAGES = {
-    "Contact added.",
-    "Contact updated.",
-    "Phone updated.",
-    "Birthday added.",
-    "Email added.",
-    "Address added.",
-    "Contact deleted.",
-}
 
 console = Console()
 
@@ -158,60 +149,3 @@ def show_table(
         table.add_row(*row)
 
     console.print(table)
-
-# =========================
-# ХЕЛПЕРИ ВІДОБРАЖЕННЯ ТА ВВОДУ
-# =========================
-
-def get_contact_args(action: str) -> list[str]:
-    name = get_required_input("Enter contact name: ")
-    args = [name]
-
-    prompts = {
-        "add": ("Enter phone number (optional): ", False),
-        "change": ("Enter new phone number: ", True),
-        "add-birthday": ("Enter birthday (DD.MM.YYYY): ", True),
-        "add-email": ("Enter email: ", True),
-        "add-address": ("Enter address: ", True),
-    }
-
-    if action in prompts:
-        prompt_text, required = prompts[action]
-        value = get_required_input(prompt_text) if required else input(prompt_text).strip()
-        if value:
-            args.append(value)
-
-    return args
-
-
-def display_contacts(contacts, title: str) -> None:
-    rows = [
-        [
-            str(record.name),
-            str(record.phone) if record.phone else "-",
-            str(record.birthday) if record.birthday else "-",
-            str(record.email) if record.email else "-",
-            str(record.address) if record.address else "-",
-        ]
-        for record in contacts
-    ]
-
-    show_table(
-        title=title,
-        headers=["Name", "Phone", "Birthday", "Email", "Address"],
-        rows=rows,
-    )
-
-
-def show_contact_result(result: str) -> None:
-    if result in SUCCESS_MESSAGES:
-        show_success(result)
-    elif result in {"Contact not found", "Contact not found."}:
-        show_error(result)
-    else:
-        console.print(result, markup=False)
-
-
-# Пауза для користувача перед продовженням
-def pause() -> None:
-    input("\nPress Enter to continue...")
