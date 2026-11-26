@@ -1,3 +1,13 @@
 name,phone,birthday,email,address
-Andriy,,,,
-Olena,1111111111,,,
+Olena,0501234567,15.05.1995,olena.koval@example.com,"вул. Січових Стрільців, 24, кв. 10"
+Maksym,0679876543,01.01.2000,maksym.bondar@example.com,"м. Львів, пл. Ринок, 1"
+Sofiia,0931112233,22.08.1998,sofiia.melnyk@example.com,"м. Харків, пр. Науки, 14"
+Andrii,0634455667,10.12.1992,andrii.shevchenko@example.com,"м. Дніпро, вул. Яворницького, 55"
+Iryna,0997788990,03.03.1997,iryna.tkachenko@example.com,"м. Одеса, вул. Дерибасівська, 8"
+Bohdan,0505544332,19.11.1990,bohdan.kravchenko@example.com,"м. Київ, вул. Хрещатик, 22"
+Kateryna,0682233445,27.07.1999,kateryna.polischuk@example.com,"м. Вінниця, вул. Соборна, 40"
+Dmytro,0956677881,08.04.1994,dmytro.marchenko@example.com,"м. Запоріжжя, пр. Соборний, 102"
+Anna,0663344558,14.02.2001,anna.savchenko@example.com,"м. Чернігів, вул. Кирпоноса, 19"
+Yaroslav,0738899002,30.09.1996,yaroslav.lysenko@example.com,"м. Полтава, вул. Соборності, 31"
+Andriy,1000000000,10.12.1970,,"Rafina,1000,Nireos 15"
+find Andriy,,,,

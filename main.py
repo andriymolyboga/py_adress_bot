@@ -11,6 +11,11 @@ from contact_commands import (
     show_email,
     show_phones,
 )
+from get_birthday import (
+    BirthdayNotFoundError,
+    get_upcoming_birthdays_for_period,
+    parse_days,
+)
 from notes import NotesBook
 from notes_handlers import (
     add_note,
@@ -28,9 +33,14 @@ from notes_storage import load_notes, save_notes
 from storage import load_data, save_data
 from ui import (
     console,
+    display_birthdays,
+    display_contacts,
+    get_birthday_days,
     get_command,
+    get_contact_args,
     get_required_input,
     pause,
+    show_contact_result,
     show_contacts_menu,
     show_error,
     show_info,
@@ -39,14 +49,12 @@ from ui import (
     show_success,
     show_table,
     show_welcome,
-    display_contacts,
-    get_contact_args,
-    show_contact_result,
 )
 
 # =========================
 # ЦИКЛИ КЕРУВАННЯ РОЗДІЛАМИ
 # =========================
+
 
 def _run_section_loop(
     show_menu_func,
@@ -114,6 +122,20 @@ def manage_contacts(address_book) -> str | None:
                 display_contacts([record], "Contact Details")
             return True
 
+        # Окрема гілка для пошуку днів народження за задану кількість днів
+        # Окрема гілка для пошуку днів народження за задану кількість днів
+        if action == "birthdays":
+            try:
+                raw_days = get_birthday_days()
+                days = parse_days(raw_days)
+                upcoming = get_upcoming_birthdays_for_period(address_book, days)
+                display_birthdays(upcoming, days)
+            except BirthdayNotFoundError as error:
+                show_info(str(error))
+            except ValueError as error:
+                show_error(str(error))
+            return True
+
         if action in handlers:
             args = get_contact_args(action)
             result = handlers[action](args, address_book)
@@ -125,7 +147,7 @@ def manage_contacts(address_book) -> str | None:
     return _run_section_loop(
         show_menu_func=show_contacts_menu,
         handlers=handlers,
-        extra_commands=["all", "menu", "back", "exit"],
+        extra_commands=["all", "birthdays", "menu", "back", "exit"],
         on_action=handle_contact_action,
     )
 
@@ -161,6 +183,7 @@ def manage_notes(notes_book: NotesBook) -> str | None:
 # =========================
 # ГОЛОВНЕ МЕНЮ ПРОГРАМИ
 # =========================
+
 
 def _load_initial_state() -> tuple[object, NotesBook] | None:
     try:
@@ -206,6 +229,7 @@ def main() -> None:
 # =========================
 # ТОЧКА ВХОДУ
 # =========================
+
 
 if __name__ == "__main__":
     main()
