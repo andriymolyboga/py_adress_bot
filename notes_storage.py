@@ -3,7 +3,7 @@ from pathlib import Path
 
 from notes import Note, NotesBook
 
-DEFAULT_NOTES_FILE = Path.home() / ".personal_assistant" / "notes.csv"
+DEFAULT_NOTES_FILE = Path(__file__).parent / "data" / "notes.csv"
 FIELDNAMES = ["id", "title", "text", "tags"]
 
 

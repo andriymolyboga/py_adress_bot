@@ -8,7 +8,7 @@ from contacts import AddressBook, Record
 # НАЛАШТУВАННЯ ФАЙЛУ
 # =========================
 
-DATA_FILE = Path.home() / ".personal_assistant" / "addressbook.csv"
+DATA_FILE = Path(__file__).parent / "data" / "addressbook.csv"
 
 
 # =========================
