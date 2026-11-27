@@ -1,3 +1,4 @@
+from difflib import get_close_matches
 from contact_commands import (
     add_address,
     add_birthday,
@@ -5,7 +6,6 @@ from contact_commands import (
     add_email,
     change_phone,
     delete_contact,
-    find_contact,
     show_address,
     show_birthday,
     show_email,
@@ -39,52 +39,22 @@ from ui import (
     get_command,
     get_contact_args,
     get_required_input,
-    pause,
     show_contact_result,
     show_contacts_menu,
     show_error,
     show_info,
     show_main_menu,
     show_notes_menu,
-    show_success,
-    show_table,
     show_welcome,
-)
-
-from notes import NotesBook
-from notes_handlers import (
-    add_note,
-    show_all_notes,
-    show_note,
-    search_notes,
-    edit_note,
-    delete_note,
-    delete_all_notes,
-    add_tag,
-    search_by_tag,
-    sort_by_tags
-)
-
-from ui import (
-    console,
-    show_welcome,
-    show_main_menu,
-    show_notes_menu,
-    get_command,
-    show_error,
-    show_info,
-    show_contacts_menu,
-    get_required_input,
-    show_table,
-    show_success
+    show_warning
 )
 
 
 # =========================
-# КЕРУВАННЯ НОТАТКАМИ
+# НАВІГАЦІЯ МІЖ РОЗДІЛАМИ
 # =========================
 
-
+# Забезпечує спільну логіку навігації та обробки команд
 def _run_section_loop(
     show_menu_func,
     handlers: dict,
@@ -94,22 +64,29 @@ def _run_section_loop(
     action = show_menu_func()
 
     while True:
-        if action in commands:
-            function = commands[action]
-            function(notes_book)
-
-        elif action == "menu":
-            action = show_notes_menu()
+        if action == "menu":
+            action = show_menu_func()
             continue
 
         elif action == "back" or action is None:
             return
 
-        elif action == "exit":
+        elif action in ("exit", "close"):
             return "exit"
 
-        else:
-            show_error("Unknown command.")
+        elif not on_action(action):
+            # Шукаємо найближчу команду у разі помилки введення
+            matches = get_close_matches(
+                action,
+                list(handlers) + extra_commands,
+                n=1,
+                cutoff=0.6
+            )
+
+            if matches:
+                show_warning(f"Unknown command. Did you mean '{matches[0]}'?")
+            else:
+                show_error("Unknown command.")
 
         console.print(
             "\nType 'menu' to show actions, "
@@ -117,8 +94,9 @@ def _run_section_loop(
             style="dim"
         )
 
+        # Отримуємо наступну команду з автодоповненням
         action = get_command(
-            list(commands) + ["menu", "back", "exit"]
+            list(handlers) + extra_commands
         )
 
         if action is not None:
@@ -126,79 +104,52 @@ def _run_section_loop(
 
 
 # =========================
-# КЕРУВАННЯ КОНТАКТАМИ
+# КЕРУВАННЯ НОТАТКАМИ
 # =========================
 
-# Запитує аргументи для команд керування контактами
-def get_contact_args(action: str) -> list[str]:
-    name = get_required_input("Enter contact name: ")
-    args = [name]
+# Керує командами для роботи з нотатками та тегами
+def manage_notes(notes_book: NotesBook) -> str | None:
 
-    if action == "add":
-        phone = input("Enter phone number (optional): ").strip()
-        if phone:
-            args.append(phone)
+    # Словник доступних команд та відповідних функцій
+    handlers = {
+        "add": add_note,
+        "all": show_all_notes,
+        "find": show_note,
+        "search": search_notes,
+        "edit": edit_note,
+        "delete": delete_note,
+        "delete-all": delete_all_notes,
+        "add-tag": add_tag,
+        "search-tag": search_by_tag,
+        "sort-tags": sort_by_tags
+    }
 
-    elif action == "change":
-        phone = get_required_input("Enter new phone number: ")
-        args.append(phone)
+    # Виконує вибрану команду для книги нотаток
+    def handle_note_action(action: str) -> bool:
+        if action in handlers:
+            handlers[action](notes_book)
+            return True
 
-    elif action == "add-birthday":
-        birthday = get_required_input("Enter birthday (DD.MM.YYYY): ")
-        args.append(birthday)
+        return False
 
-    elif action == "add-email":
-        email = get_required_input("Enter email: ")
-        args.append(email)
-
-    elif action == "add-address":
-        address = get_required_input("Enter address: ")
-        args.append(address)
-
-    return args
-
-
-# Відображення контактів у вигляді таблиці
-def display_contacts(contacts, title: str) -> None:
-    rows = []
-
-    for record in contacts:
-        rows.append([
-            str(record.name),
-            str(record.phone) if record.phone else "-",
-            str(record.birthday) if record.birthday else "-",
-            str(record.email) if record.email else "-",
-            str(record.address) if record.address else "-"
-        ])
-
-    show_table(
-        title=title,
-        headers=["Name", "Phone", "Birthday", "Email", "Address"],
-        rows=rows
+    # Запускаємо спільний цикл навігації для нотаток
+    return _run_section_loop(
+        show_menu_func=show_notes_menu,
+        handlers=handlers,
+        extra_commands=["menu", "back", "exit"],
+        on_action=handle_note_action,
     )
 
 
-# Відображає результат виконання команди
-def show_contact_result(result: str) -> None:
-    success_messages = [
-        "Contact added.",
-        "Contact updated.",
-        "Phone updated.",
-        "Birthday added.",
-        "Email added.",
-        "Address added.",
-        "Contact deleted."
-    ]
+# =========================
+# КЕРУВАННЯ КОНТАКТАМИ
+# =========================
 
-    if result in success_messages:
-        show_success(result)
-    else:
-        console.print(result, markup=False)
+# Керує командами для роботи з адресною книгою
+def manage_contacts(book) -> str | None:
 
-
-def manage_contacts(book):
-
-    commands = {
+    # Словник доступних команд та відповідних функцій
+    handlers = {
         "add": add_contact,
         "change": change_phone,
         "phone": show_phones,
@@ -208,13 +159,12 @@ def manage_contacts(book):
         "show-email": show_email,
         "add-address": add_address,
         "show-address": show_address,
-        "find": find_contact,
         "delete": delete_contact
     }
 
-    action = show_contacts_menu()
+    # Обробляє вибрану команду для адресної книги
+    def handle_contact_action(action: str) -> bool:
 
-    while True:
         if action == "all":
             display_contacts(book.data.values(), "My Contacts")
 
@@ -227,82 +177,78 @@ def manage_contacts(book):
             else:
                 display_contacts([record], "Contact Details")
 
-        # Окрема гілка для пошуку днів народження за задану кількість днів
-        # Окрема гілка для пошуку днів народження за задану кількість днів
-        if action == "birthdays":
+        elif action == "birthdays":
             try:
                 raw_days = get_birthday_days()
                 days = parse_days(raw_days)
-                upcoming = get_upcoming_birthdays_for_period(address_book, days)
+                upcoming = get_upcoming_birthdays_for_period(book, days)
                 display_birthdays(upcoming, days)
+
             except BirthdayNotFoundError as error:
                 show_info(str(error))
+
             except ValueError as error:
                 show_error(str(error))
-            return True
 
-        if action in handlers:
-            args = get_contact_args(action)
+        elif action in handlers:
+            args = get_contact_args(action, book)
 
-            function = commands[action]
-            result = function(args, book)
-            show_contact_result(result)
-
-        elif action == "menu":
-            action = show_contacts_menu()
-            continue
-
-    return _run_section_loop(
-        show_menu_func=show_contacts_menu,
-        handlers=handlers,
-        extra_commands=["all", "birthdays", "menu", "back", "exit"],
-        on_action=handle_contact_action,
-    )
-
-        elif action in ("exit", "close"):
-            return "exit"
+            if args is not None:
+                result = handlers[action](args, book)
+                show_contact_result(result)
 
         elif action == "hello":
             show_info("How can I help you?")
 
         else:
-            show_error("Unknown command.")
+            return False
 
-        console.print(
-            "\nType 'menu' to show actions, "
-            "'back' for main menu, or 'exit' to quit.",
-            style="dim"
-        )
+        return True
 
-        action = get_command(
-            list(commands) + ["all", "menu", "back", "exit"]
-        )
-
-        if action is not None:
-            action = action.strip().lower()
+    # Запускаємо спільний цикл навігації для контактів
+    return _run_section_loop(
+        show_menu_func=show_contacts_menu,
+        handlers=handlers,
+        extra_commands=[
+            "all", "find", "birthdays",
+            "menu", "back", "exit"
+        ],
+        on_action=handle_contact_action,
+    )
 
 
 # =========================
 # ГОЛОВНЕ МЕНЮ ПРОГРАМИ
 # =========================
 
-
+# Завантажує збережені контакти та нотатки під час запуску
 def _load_initial_state() -> tuple[object, NotesBook] | None:
+
+    # Завантажуємо адресну книгу
     try:
         address_book = load_data()
     except (ValueError, OSError) as error:
         show_error(f"Could not load address book: {error}")
         return None
 
-    # Завантажуємо адресну книгу
+    # Завантажуємо книгу нотаток
     try:
-        book = load_data()
+        notes_book = load_notes()
     except (ValueError, OSError) as error:
-        show_error(f"Could not load address book: {error}")
+        show_error(f"Could not load notes: {error}")
+        return None
+
+    return address_book, notes_book
+
+
+# Керує життєвим циклом застосунку
+def main() -> None:
+    state = _load_initial_state()
+
+    if state is None:
         return
 
-    # Створюємо книгу нотаток
-    notes_book = NotesBook()
+    address_book, notes_book = state
 
     show_welcome()
 
@@ -310,7 +256,7 @@ def _load_initial_state() -> tuple[object, NotesBook] | None:
         choice = show_main_menu()
 
         if choice == "Contacts":
-            if manage_contacts(book) == "exit":
+            if manage_contacts(address_book) == "exit":
                 break
 
         elif choice == "Notes":
@@ -320,15 +266,20 @@ def _load_initial_state() -> tuple[object, NotesBook] | None:
         elif choice == "Exit" or choice is None:
             break
 
-    # Зберігаємо адресну книгу
-    save_data(book)
-    show_info("Address book saved. Goodbye!")
+    # Зберігаємо контакти та нотатки перед завершенням роботи
+    try:
+        save_data(address_book)
+        save_notes(notes_book)
+        show_info("Contacts and notes saved. Goodbye!")
+
+    except (ValueError, OSError) as error:
+        show_error(f"Could not save data: {error}")
 
 
 # =========================
 # ТОЧКА ВХОДУ
 # =========================
 
-
+# Запускаємо застосунок при безпосередньому виконанні файлу
 if __name__ == "__main__":
     main()

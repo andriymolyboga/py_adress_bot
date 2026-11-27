@@ -16,7 +16,11 @@ def _birthday_in_year(birth_date: date, target_year: int) -> date:
     Повертає дату дня народження у вказаному році.
     Для 29 лютого у невисокосний рік повертає 28 лютого.
     """
-    if birth_date.month == 2 and birth_date.day == 29 and not _is_leap_year(target_year):
+    if (
+        birth_date.month == 2
+        and birth_date.day == 29
+        and not _is_leap_year(target_year)
+    ):
         return date(target_year, 2, 28)
     return date(target_year, birth_date.month, birth_date.day)
 
@@ -30,13 +34,15 @@ def parse_days(raw_days: str, max_days: int = 3650) -> int:
     try:
         days = int(cleaned)
     except ValueError as exc:
-        raise ValueError("Number of days must be an integer (e.g., 7, 14, 30).") from exc
+        raise ValueError(
+            "Number of days must be an integer (e.g., 7, 14, 30).") from exc
 
     if days < 0:
         raise ValueError("Number of days cannot be negative.")
 
     if days > max_days:
-        raise ValueError(f"Please enter a number of days no greater than {max_days}.")
+        raise ValueError(
+            f"Please enter a number of days no greater than {max_days}.")
 
     return days
 
@@ -61,13 +67,17 @@ def get_upcoming_birthdays_for_period(
     records = book.data.values() if hasattr(book, "data") else book.values()
 
     for record in records:
-        if getattr(record, "birthday", None) is None or record.birthday.value is None:
+        if (
+            getattr(record, "birthday", None) is None
+            or record.birthday.value is None
+        ):
             continue
 
         raw_bday = record.birthday.value
         birth_date = raw_bday.date() if hasattr(raw_bday, "date") else raw_bday
 
-        # Перевіряємо поточний і наступний рік, щоб коректно обробити перехід через 31.12 -> 01.01
+        # Перевіряємо поточний і наступний рік, щоб коректно
+        # обробити перехід через 31.12 -> 01.01
         candidate_dates = [
             _birthday_in_year(birth_date, start_date.year),
             _birthday_in_year(birth_date, start_date.year + 1),
@@ -85,9 +95,11 @@ def get_upcoming_birthdays_for_period(
             })
 
     if not upcoming_birthdays:
-        raise BirthdayNotFoundError(f"No upcoming birthdays in the next {days} day(s).")
+        raise BirthdayNotFoundError(
+            f"No upcoming birthdays in the next {days} day(s).")
 
-    upcoming_birthdays.sort(key=lambda item: tuple(map(int, item["birthday"].split(".")[::-1])))
+    upcoming_birthdays.sort(key=lambda item: tuple(
+        map(int, item["birthday"].split(".")[::-1])))
     return upcoming_birthdays
 
 

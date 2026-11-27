@@ -3,7 +3,7 @@ from pathlib import Path
 
 from notes import Note, NotesBook
 
-DEFAULT_NOTES_FILE = Path("data/notes.csv")
+DEFAULT_NOTES_FILE = Path.home() / ".personal_assistant" / "notes.csv"
 FIELDNAMES = ["id", "title", "text", "tags"]
 
 
@@ -18,7 +18,10 @@ def _deserialize_tags(raw_tags: str | None) -> set[str]:
     return {tag.strip().lower() for tag in raw_tags.split(";") if tag.strip()}
 
 
-def save_notes(notes_book: NotesBook, filename: Path = DEFAULT_NOTES_FILE) -> None:
+def save_notes(
+    notes_book: NotesBook,
+    filename: Path = DEFAULT_NOTES_FILE
+) -> None:
     path = Path(filename)
     path.parent.mkdir(parents=True, exist_ok=True)
 

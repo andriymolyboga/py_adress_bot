@@ -1,0 +1,11 @@
+id,title,text,tags
+1,Project Kickoff,"Prepare the project roadmap, confirm stakeholders and schedule the kickoff meeting.",project;work
+2,Weekly Planning,"Review project priorities, update the task list and prepare the weekly status report.",planning;work
+3,Python Learning,"Practice object-oriented programming, decorators and file handling.",education;python
+4,AI Research,"Explore vector databases, RAG architecture and AI agents.",ai;education
+5,Birthday Reminder,Buy a birthday gift for Olena and book a restaurant.,birthday;personal
+6,Weekend Trip,"Plan a weekend trip to Lviv, book accommodation and check train tickets.",personal;travel
+7,Monthly Budget,"Review subscriptions, track expenses and update the savings plan.",finance;personal
+8,Product Ideas,Explore opportunities for an AI-powered personal productivity assistant.,ai;project;work
+9,Reading List,Read Clean Code and The Pragmatic Programmer.,books;education
+10,Quick Reminder,Pick up the parcel on the way home.,

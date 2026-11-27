@@ -6,7 +6,8 @@ from contacts import AddressBook, Record
 # =========================
 
 def input_error(func):
-    # Декоратор без wraps перехоплює типові помилки вводу та повертає зрозуміле повідомлення
+    # Декоратор без wraps перехоплює типові помилки вводу
+    # та повертає зрозуміле повідомлення
     def inner(*args, **kwargs):
         try:
             return func(*args, **kwargs)
@@ -40,14 +41,21 @@ def add_contact(args, book: AddressBook):
     name = args[0]
     phone = args[1] if len(args) > 1 else None
     record = book.find(name)
-    message = "Contact updated."
+
     if record is None:
         record = Record(name)
+
+        # Перевіряємо телефон перед збереженням контакту
+        if phone:
+            record.add_phone(phone)
+
         book.add_record(record)
-        message = "Contact added."
+        return "Contact added."
+
     if phone:
         record.add_phone(phone)
-    return message
+
+    return "Contact updated."
 
 
 @input_error
@@ -55,9 +63,12 @@ def change_phone(args, book: AddressBook):
     # Оновлює єдиний номер телефону контакту
     name, new_phone, *_ = args
     record = book.find(name)
+
     if record is None:
         raise KeyError("Contact not found")
+
     record.edit_phone(new_phone)
+
     return "Phone updated."
 
 
@@ -125,7 +136,8 @@ def show_email(args, book: AddressBook):
 
 @input_error
 def add_address(args, book: AddressBook):
-    # Об'єднуємо всі слова після імені, щоб коректно зберегти адресу з пробілами
+    # Об'єднуємо всі слова після імені, щоб коректно
+    # зберегти адресу з пробілами
     name = args[0]
     if len(args) < 2:
         raise IndexError
@@ -150,6 +162,7 @@ def show_address(args, book: AddressBook):
 # =========================
 # ПОШУК ТА ВИДАЛЕННЯ КОНТАКТІВ
 # =========================
+
 
 @input_error
 def find_contact(args, book: AddressBook):
