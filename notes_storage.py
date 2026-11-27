@@ -48,18 +48,29 @@ def load_notes(filename: Path = DEFAULT_NOTES_FILE) -> NotesBook:
     max_id = 0
 
     with path.open("r", newline="", encoding="utf-8") as file:
-        reader = csv.DictReader(file)
-        for row in reader:
-            if not row:
-                continue
+        reader = csv.DictReader(file, strict=True)
+
+        # Перевіряємо структуру CSV-файлу
+        if reader.fieldnames != FIELDNAMES:
+            raise ValueError("Invalid notes CSV headers.")
+
+        for row_number, row in enumerate(reader, start=2):
+            # Перевіряємо кількість полів у рядку
+            if None in row or None in row.values():
+                raise ValueError(
+                    f"Invalid notes CSV structure at row {row_number}."
+                )
 
             raw_id = (row.get("id") or "").strip()
             title = (row.get("title") or "").strip()
             text = (row.get("text") or "").strip()
             tags = _deserialize_tags(row.get("tags"))
 
+            # Перевіряємо обов'язкові поля нотатки
             if not raw_id or not title or not text:
-                continue
+                raise ValueError(
+                    f"Missing required note fields at row {row_number}."
+                )
 
             note_id = int(raw_id)
             note = Note(note_id=note_id, title=title, text=text, tags=tags)

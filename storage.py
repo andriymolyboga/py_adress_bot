@@ -54,9 +54,20 @@ def load_data(filename=DATA_FILE):
         return book
 
     with filename.open("r", newline="", encoding="utf-8") as file:
-        reader = csv.DictReader(file)
+        reader = csv.DictReader(file, strict=True)
+
+        # Перевіряємо структуру CSV-файлу
+        fieldnames = ["name", "phone", "birthday", "email", "address"]
+
+        if reader.fieldnames != fieldnames:
+            raise ValueError("Invalid contacts CSV headers.")
 
         for row_number, row in enumerate(reader, start=2):
+            if None in row or None in row.values():
+                raise ValueError(
+                    f"Invalid contacts CSV structure at row {row_number}."
+                )
+
             try:
                 record = Record(row["name"])
 

@@ -5,6 +5,7 @@ from ui import (
     show_error,
     show_warning,
     get_required_input,
+    get_input,
     show_info
 )
 
@@ -30,7 +31,7 @@ def display_notes(notes: list[Note], title: str) -> None:
 
 # Запит підтвердження дії користувачем
 def confirm_action(prompt: str) -> bool:
-    confirmation = input(prompt).strip().lower()
+    confirmation = get_input(prompt).lower()
     return confirmation in ["y", "yes"]
 
 
@@ -96,8 +97,8 @@ def edit_note(book: NotesBook) -> None:
 
     show_info("Press Enter to keep the current value.")
 
-    title = input("\nEnter new title: ").strip()
-    text = input("Enter new text: ").strip()
+    title = get_input("\nEnter new title: ")
+    text = get_input("Enter new text: ")
 
     if not title and not text:
         show_warning("No changes made.")
