@@ -66,7 +66,7 @@ def show_note(book: NotesBook) -> None:
         show_error("Note not found.")
         return
 
-    display_notes([note], "Note Details")
+    display_notes([note], "\nNote Details")
 
 
 # Пошук нотатки за назвою або текстом
@@ -74,7 +74,7 @@ def search_notes(book: NotesBook) -> None:
     query = get_required_input("Enter search query: ")
     notes = book.search_notes(query)
 
-    display_notes(notes, "Search Results")
+    display_notes(notes, "\nSearch Results")
 
 
 # Редагування назви та/або тексту нотатки
@@ -92,7 +92,7 @@ def edit_note(book: NotesBook) -> None:
         show_error("Note not found.")
         return
 
-    display_notes([note], "Current Note")
+    display_notes([note], "\nCurrent Note")
 
     show_info("Press Enter to keep the current value.")
 
@@ -122,7 +122,7 @@ def delete_note(book: NotesBook) -> None:
         show_error("Note not found.")
         return
 
-    display_notes([note], "Note to Delete")
+    display_notes([note], "\nNote to Delete")
 
     if confirm_action("\nDelete this note? (yes/no): "):
         book.delete_note(note_id)
@@ -164,7 +164,7 @@ def add_tag(book: NotesBook) -> None:
         show_error("Note not found.")
         return
 
-    display_notes([note], "Current Note")
+    display_notes([note], "\nCurrent Note")
 
     tag = get_required_input("\nEnter new tag: ")
 
@@ -177,7 +177,7 @@ def search_by_tag(book: NotesBook) -> None:
     tag = get_required_input("\nEnter tag to search: ")
     notes = book.search_by_tag(tag)
 
-    display_notes(notes, "Search Results by Tag")
+    display_notes(notes, "\nSearch Results by Tag")
 
 
 # Відображення нотаток, відсортованих за тегами

@@ -3,7 +3,13 @@ from ui import show_table
 
 
 class Note:
-    def __init__(self, note_id: int, title: str, text: str, tags: set[str] | None = None):
+    def __init__(
+        self,
+        note_id: int,
+        title: str,
+        text: str,
+        tags: set[str] | None = None
+    ):
         self.id = note_id
         self.title = title
         self.text = text
@@ -12,7 +18,6 @@ class Note:
         if tags:
             for tag in tags:
                 self.add_tag(tag)
-
 
     @property
     def title(self):
@@ -57,11 +62,9 @@ class NotesBook(UserDict):
         self.next_id += 1
         return note
 
-
     # Шукає нотатку за ID
     def find_note(self, note_id: int) -> Note | None:
         return self.data.get(note_id)
-
 
     # Додає тег до наявної нотатки
     def add_tag(self, note_id: int, tag: str) -> bool:
@@ -74,18 +77,16 @@ class NotesBook(UserDict):
         note.add_tag(tag)
         return True
 
-
     # Шукає нотатки за назвою або текстом
     def search_notes(self, query: str) -> list[Note]:
         note_list = []
         query = query.lower()
 
         for note in self.data.values():
-           if query in note.title.lower() or query in note.text.lower():
-               note_list.append(note)
+            if query in note.title.lower() or query in note.text.lower():
+                note_list.append(note)
 
         return note_list
-
 
     # Шукає нотатки за тегом
     def search_by_tag(self, tag: str) -> list[Note]:
@@ -98,14 +99,12 @@ class NotesBook(UserDict):
 
         return note_tag_list
 
-
-   # Сортує нотатки за тегами
+    # Сортує нотатки за тегами
     def sort_by_tags(self) -> list[Note]:
         return sorted(
             self.data.values(),
             key=lambda note: (not note.tags, sorted(note.tags))
         )
-
 
     # Видаляє нотатку за ID
     def delete_note(self, note_id: int) -> bool:
@@ -139,7 +138,6 @@ class NotesBook(UserDict):
     # Повертає всі збережені нотатки
     def all_notes(self) -> list[Note]:
         return list(self.data.values())
-
 
     # Видаляє всі нотатки та повертає їх кількість
     def delete_all_notes(self) -> int:

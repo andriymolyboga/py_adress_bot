@@ -45,7 +45,7 @@ class Birthday(Field):
             birthday = datetime.strptime(value, "%d.%m.%Y").date()
         except (ValueError, TypeError):
             raise ValueError(
-                "Invalid birthday format. Use DD.MM.YYYY"
+                "Invalid birthday. Enter a valid date in DD.MM.YYYY format."
             )
 
         super().__init__(birthday)
@@ -138,16 +138,18 @@ class AddressBook:
         self.data = {}
 
     def add_record(self, record):
-        self.data[record.name.value] = record
+        self.data[record.name.value.casefold()] = record
 
     def find(self, name):
-        return self.data.get(name)
+        return self.data.get(name.strip().casefold())
 
     def delete(self, name):
-        if name not in self.data:
+        key = name.strip().casefold()
+
+        if key not in self.data:
             raise ValueError("Contact not found")
 
-        del self.data[name]
+        del self.data[key]
 
     def __str__(self):
         if not self.data:

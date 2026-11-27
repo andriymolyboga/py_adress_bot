@@ -4,14 +4,44 @@ from rich.panel import Panel
 from rich import box
 import questionary
 from questionary import Style
+from contacts import Name, Phone, Birthday, Address, Email
+from get_birthday import parse_days
 
+
+# Повідомлення про успішні операції з контактами
+SUCCESS_MESSAGES = {
+    "Contact added.",
+    "Contact updated.",
+    "Phone updated.",
+    "Birthday added.",
+    "Email added.",
+    "Address added.",
+    "Contact deleted.",
+}
+
+# Попередження про відсутність даних контакту
+WARNING_MESSAGES = {
+    "No phone for this contact.",
+    "Birthday not set for this contact.",
+    "Email not set for this contact.",
+    "Address not set for this contact.",
+}
 
 console = Console()
 
 menu_style = Style([
     ("highlighted", "fg:#5fba9d bold"),
     ("pointer", "fg:#5fba9d bold"),
+    ("answer", "fg:#5fba9d bold"),
 ])
+
+
+# Форматує назву пункту меню та підказку команди
+def menu_choice(title: str, command: str) -> questionary.Choice:
+    return questionary.Choice(
+        title=f"{title} ({command})",
+        value=command
+    )
 
 
 # Відображає привітальний екран застосунку
@@ -43,42 +73,43 @@ def show_contacts_menu() -> str | None:
     return questionary.select(
         "What would you like to do?",
         choices=[
-            questionary.Choice("Add a contact (add)", value="add"),
-            questionary.Choice("Show all contacts (all)", value="all"),
-            questionary.Choice("Find a contact (find)", value="find"),
-            questionary.Choice("Change phone (change)", value="change"),
-            questionary.Choice("Show phone (phone)", value="phone"),
-            questionary.Choice("Add birthday (add-birthday)", value="add-birthday"),
-            questionary.Choice("Show birthday (show-birthday)", value="show-birthday"),
-            questionary.Choice("Upcoming birthdays (birthdays)", value="birthdays"),
-            questionary.Choice("Add email (add-email)", value="add-email"),
-            questionary.Choice("Show email (show-email)", value="show-email"),
-            questionary.Choice("Add address (add-address)", value="add-address"),
-            questionary.Choice("Show address (show-address)", value="show-address"),
-            questionary.Choice("Delete a contact (delete)", value="delete"),
-            questionary.Choice("Back to main menu (back)", value="back")
+            menu_choice("Add a contact", "add"),
+            menu_choice("Show all contacts", "all"),
+            menu_choice("Find a contact", "find"),
+            menu_choice("Change phone", "change"),
+            menu_choice("Show phone", "phone"),
+            menu_choice("Add birthday", "add-birthday"),
+            menu_choice("Show birthday", "show-birthday"),
+            menu_choice("Upcoming birthdays", "birthdays"),
+            menu_choice("Add email", "add-email"),
+            menu_choice("Show email", "show-email"),
+            menu_choice("Add address", "add-address"),
+            menu_choice("Show address", "show-address"),
+            menu_choice("Delete a contact", "delete"),
+            menu_choice("Back to main menu", "back")
         ],
         style=menu_style,
         use_indicator=False
     ).ask()
 
-
 # Відображає меню керування нотатками
+
+
 def show_notes_menu() -> str | None:
     return questionary.select(
         "What would you like to do?",
         choices=[
-            questionary.Choice("Add a note (add)", value="add"),
-            questionary.Choice("Show all notes (all)", value="all"),
-            questionary.Choice("Find a note by ID (find)", value="find"),
-            questionary.Choice("Search notes (search)", value="search"),
-            questionary.Choice("Edit a note (edit)", value="edit"),
-            questionary.Choice("Delete a note (delete)", value="delete"),
-            questionary.Choice("Delete all notes (delete-all)", value="delete-all"),
-            questionary.Choice("Add a tag (add-tag)", value="add-tag"),
-            questionary.Choice("Search by tag (search-tag)", value="search-tag"),
-            questionary.Choice("Sort by tags (sort-tags)", value="sort-tags"),
-            questionary.Choice("Back to main menu (back)", value="back")
+            menu_choice("Add a note", "add"),
+            menu_choice("Show all notes", "all"),
+            menu_choice("Find a note by ID", "find"),
+            menu_choice("Search notes", "search"),
+            menu_choice("Edit a note", "edit"),
+            menu_choice("Delete a note", "delete"),
+            menu_choice("Delete all notes", "delete-all"),
+            menu_choice("Add a tag", "add-tag"),
+            menu_choice("Search by tag", "search-tag"),
+            menu_choice("Sort by tags", "sort-tags"),
+            menu_choice("Back to main menu", "back")
         ],
         style=menu_style,
         use_indicator=False
@@ -90,28 +121,30 @@ def get_command(commands: list[str]) -> str | None:
     return questionary.autocomplete(
         "Enter command:",
         choices=commands,
-        ignore_case=True
+        ignore_case=True,
+        style=menu_style,
+        reserve_space_for_menu=10
     ).ask()
 
 
 # Виводить повідомлення про успішну операцію
 def show_success(message: str) -> None:
-    console.print(f"\n✓ {message}", style="green")
+    console.print(f"✓ {message}\n", style="green", highlight=False)
 
 
 # Виводить повідомлення про помилку
 def show_error(message: str) -> None:
-    console.print(f"\n✗ {message}", style="bold red")
+    console.print(f"✗ {message}\n", style="bold red", highlight=False)
 
 
 # Виводить попередження
 def show_warning(message: str) -> None:
-    console.print(f"\n⚠ {message}", style="yellow")
+    console.print(f"⚠ {message}\n", style="yellow", highlight=False)
 
 
 # Виводить інформаційне повідомлення
 def show_info(message: str) -> None:
-    console.print(f"\nℹ {message}", style="bold cyan")
+    console.print(f"ℹ {message}\n", style="bold cyan", highlight=False)
 
 
 # Запитує непорожнє значення
@@ -125,9 +158,24 @@ def get_required_input(prompt: str) -> str:
         show_error("This field cannot be empty. Please try again.")
 
 
-# Запитує кількість днів для пошуку днів народження
+# Запитує значення та повторює введення у разі помилки валідації
+def get_validated_input(prompt: str, validator, required: bool = True) -> str:
+    while True:
+        value = input(prompt).strip()
+
+        if not value and not required:
+            return ""
+
+        try:
+            validator(value)
+            return value
+        except ValueError as error:
+            show_error(str(error))
+
+
+# Запитує та перевіряє кількість днів
 def get_birthday_days() -> str:
-    return get_required_input("Enter number of days: ")
+    return get_validated_input("\nEnter number of days: ", parse_days)
 
 
 # Виводить дані у вигляді таблиці
@@ -147,7 +195,8 @@ def show_table(
         header_style="bold wheat1",
         border_style="dark_orange3",
         show_lines=True,
-        box=box.ROUNDED
+        box=box.ROUNDED,
+        min_width=40
     )
 
     for header in headers:
@@ -163,21 +212,29 @@ def show_table(
 # ХЕЛПЕРИ ВІДОБРАЖЕННЯ ТА ВВОДУ
 # =========================
 
-def get_contact_args(action: str) -> list[str]:
-    name = get_required_input("Enter contact name: ")
+# Запитує та перевіряє аргументи для команд керування контактами
+def get_contact_args(action: str, book) -> list[str] | None:
+    name = get_validated_input("Enter contact name: ", Name)
+
+    # Перевіряємо наявність контакту перед введенням інших даних
+    if action != "add" and book.find(name) is None:
+        show_error("Contact not found.")
+        return None
+
     args = [name]
 
     prompts = {
-        "add": ("Enter phone number (optional): ", False),
-        "change": ("Enter new phone number: ", True),
-        "add-birthday": ("Enter birthday (DD.MM.YYYY): ", True),
-        "add-email": ("Enter email: ", True),
-        "add-address": ("Enter address: ", True),
+        "add": ("Enter phone number (optional): ", Phone, False),
+        "change": ("Enter new phone number: ", Phone, True),
+        "add-birthday": ("Enter birthday (DD.MM.YYYY): ", Birthday, True),
+        "add-email": ("Enter email: ", Email, True),
+        "add-address": ("Enter address: ", Address, True),
     }
 
     if action in prompts:
-        prompt_text, required = prompts[action]
-        value = get_required_input(prompt_text) if required else input(prompt_text).strip()
+        prompt_text, validator, required = prompts[action]
+        value = get_validated_input(prompt_text, validator, required)
+
         if value:
             args.append(value)
 
@@ -215,16 +272,19 @@ def display_birthdays(birthdays: list[dict[str, str]], days: int) -> None:
     ]
 
     show_table(
-        title=f"Upcoming Birthdays (Next {days} Day(s))",
+        title=f"\nUpcoming Birthdays · {days} days",
         headers=["#", "Name", "Birthday"],
         rows=rows,
         empty_message=f"No upcoming birthdays in the next {days} day(s).",
     )
 
 
+# Відображає результат виконання команди для контактів
 def show_contact_result(result: str) -> None:
     if result in SUCCESS_MESSAGES:
         show_success(result)
+    elif result in WARNING_MESSAGES:
+        show_warning(result)
     elif result in {"Contact not found", "Contact not found."}:
         show_error(result)
     else:
