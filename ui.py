@@ -49,7 +49,8 @@ def show_welcome() -> None:
     console.print(
         Panel(
             "[bold gold1]Personal Assistant[/bold gold1]\n\n"
-            "Organize your contacts. Capture your thoughts.",
+            "Organize your contacts. Capture your thoughts.\n\n"
+            "Type 'menu' or 'exit' at any text input prompt.",
             border_style="dark_orange3",
             box=box.ROUNDED,
             padding=(1, 2),
@@ -86,7 +87,8 @@ def show_contacts_menu() -> str | None:
             menu_choice("Add address", "add-address"),
             menu_choice("Show address", "show-address"),
             menu_choice("Delete a contact", "delete"),
-            menu_choice("Back to main menu", "back")
+            menu_choice("Back to main menu", "back"),
+            menu_choice("Exit", "exit")
         ],
         style=menu_style,
         use_indicator=False
@@ -109,7 +111,8 @@ def show_notes_menu() -> str | None:
             menu_choice("Add a tag", "add-tag"),
             menu_choice("Search by tag", "search-tag"),
             menu_choice("Sort by tags", "sort-tags"),
-            menu_choice("Back to main menu", "back")
+            menu_choice("Back to main menu", "back"),
+            menu_choice("Exit", "exit")
         ],
         style=menu_style,
         use_indicator=False
@@ -147,10 +150,27 @@ def show_info(message: str) -> None:
     console.print(f"ℹ {message}\n", style="bold cyan", highlight=False)
 
 
+# Виняток для переривання операції та навігації
+class NavigationCommand(Exception):
+    def __init__(self, command: str):
+        self.command = command
+        super().__init__(command)
+
+
+# Запитує значення та розпізнає команди навігації
+def get_input(prompt: str) -> str:
+    value = input(prompt).strip()
+
+    if value.lower() in ("menu", "exit"):
+        raise NavigationCommand(value.lower())
+
+    return value
+
+
 # Запитує непорожнє значення
 def get_required_input(prompt: str) -> str:
     while True:
-        value = input(prompt).strip()
+        value = get_input(prompt)
 
         if value:
             return value
@@ -161,7 +181,7 @@ def get_required_input(prompt: str) -> str:
 # Запитує значення та повторює введення у разі помилки валідації
 def get_validated_input(prompt: str, validator, required: bool = True) -> str:
     while True:
-        value = input(prompt).strip()
+        value = get_input(prompt)
 
         if not value and not required:
             return ""
@@ -200,7 +220,7 @@ def show_table(
     )
 
     for header in headers:
-        table.add_column(header)
+        table.add_column(header, overflow="fold")
 
     for row in rows:
         table.add_row(*row)

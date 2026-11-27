@@ -1,4 +1,5 @@
 from difflib import get_close_matches
+import csv
 from contact_commands import (
     add_address,
     add_birthday,
@@ -32,6 +33,7 @@ from notes_handlers import (
 from notes_storage import load_notes, save_notes
 from storage import load_data, save_data
 from ui import (
+    NavigationCommand,
     console,
     display_birthdays,
     display_contacts,
@@ -46,7 +48,7 @@ from ui import (
     show_main_menu,
     show_notes_menu,
     show_welcome,
-    show_warning
+    show_warning,
 )
 
 
@@ -54,6 +56,7 @@ from ui import (
 # НАВІГАЦІЯ МІЖ РОЗДІЛАМИ
 # =========================
 
+# Забезпечує спільну логіку навігації та обробки команд
 # Забезпечує спільну логіку навігації та обробки команд
 def _run_section_loop(
     show_menu_func,
@@ -74,19 +77,28 @@ def _run_section_loop(
         elif action in ("exit", "close"):
             return "exit"
 
-        elif not on_action(action):
-            # Шукаємо найближчу команду у разі помилки введення
-            matches = get_close_matches(
-                action,
-                list(handlers) + extra_commands,
-                n=1,
-                cutoff=0.6
-            )
+        try:
+            if not on_action(action):
+                # Шукаємо найближчу команду у разі помилки введення
+                matches = get_close_matches(
+                    action,
+                    list(handlers) + extra_commands,
+                    n=1,
+                    cutoff=0.6
+                )
 
-            if matches:
-                show_warning(f"Unknown command. Did you mean '{matches[0]}'?")
-            else:
-                show_error("Unknown command.")
+                if matches:
+                    show_warning(
+                        f"Unknown command. Did you mean '{matches[0]}'?"
+                    )
+                else:
+                    show_error("Unknown command.")
+
+        except NavigationCommand as error:
+            # Скасовуємо поточну операцію та виконуємо команду навігації
+            show_info("Operation cancelled.")
+            action = error.command
+            continue
 
         console.print(
             "\nType 'menu' to show actions, "
@@ -227,14 +239,14 @@ def _load_initial_state() -> tuple[object, NotesBook] | None:
     # Завантажуємо адресну книгу
     try:
         address_book = load_data()
-    except (ValueError, OSError) as error:
+    except (ValueError, OSError, csv.Error) as error:
         show_error(f"Could not load address book: {error}")
         return None
 
     # Завантажуємо книгу нотаток
     try:
         notes_book = load_notes()
-    except (ValueError, OSError) as error:
+    except (ValueError, OSError, csv.Error) as error:
         show_error(f"Could not load notes: {error}")
         return None
 
